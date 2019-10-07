@@ -4,4 +4,6 @@
     <string name="password">password</string>
     <string name="Register">Register</string>
     <string name="LogIn">Log In</string>
+    <string name="comfirmPassword">comfirm password</string>
+    <string name="email">email</string>
 </resources>

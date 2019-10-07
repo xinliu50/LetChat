@@ -2,8 +2,12 @@ package com.example.letchat;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.text.TextUtils;
@@ -17,7 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private EditText username, password;
-    private Button regBtn;
+    private Button regBtn, lgBtn;
     private ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,7 +32,13 @@ public class MainActivity extends AppCompatActivity {
         regBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                registerNewUser();
+                register();
+            }
+        });
+        lgBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loginUserAccount();
             }
         });
     }
@@ -36,13 +46,18 @@ public class MainActivity extends AppCompatActivity {
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
         regBtn = findViewById(R.id.regBtn);
+        lgBtn = findViewById(R.id.lgBtn);
+        progressBar = findViewById(R.id.progressBar);
     }
-    private void registerNewUser(){
+    private void register(){
+        Intent intent = new Intent(MainActivity.this,RegisterActivity.class);
+        startActivity(intent);
+        /*
         progressBar.setVisibility(View.VISIBLE);
         String username, password;
         username = this.username.getText().toString();
         password = this.password.getText().toString();
-
+        closeKeyboard();
         if(TextUtils.isEmpty(username)){
             Toast.makeText(getApplicationContext(),"Please enter your email!", Toast.LENGTH_LONG).show();
             return;
@@ -64,5 +79,48 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+        this.username.setText("");
+        this.password.setText("");*/
+
+    }
+    private void loginUserAccount(){
+        progressBar.setVisibility(View.VISIBLE);
+        String username, password;
+        username = this.username.getText().toString();
+        password = this.password.getText().toString();
+        closeKeyboard();
+        if(TextUtils.isEmpty(username)){
+            Toast.makeText(getApplicationContext(),"Please enter your email!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        if(TextUtils.isEmpty(password)){
+            Toast.makeText(getApplicationContext(),"Please enter yor password!", Toast.LENGTH_LONG).show();
+            return;
+        }
+        mAuth.signInWithEmailAndPassword(username,password)
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                            progressBar.setVisibility(View.GONE);
+                            Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                            startActivity(intent);
+                        }
+                        else {
+                            Toast.makeText(getApplicationContext(), "Login failed! Please try again later", Toast.LENGTH_LONG).show();
+                            progressBar.setVisibility(View.GONE);
+                        }
+                    }
+                });
+        this.username.setText("");
+        this.password.setText("");
+    }
+    private void closeKeyboard(){
+        View view = this.getCurrentFocus();
+        if(view != null){
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(),0);
+        }
     }
 }
