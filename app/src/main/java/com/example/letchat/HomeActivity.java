@@ -1,5 +1,6 @@
 package com.example.letchat;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -11,6 +12,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -20,7 +22,10 @@ import android.widget.ListView;
 import android.widget.TableRow;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -65,9 +70,11 @@ class BitmapScaler
 }
 
 public class HomeActivity extends AppCompatActivity {
+    private FirebaseAuth mAuth = FirebaseAuth.getInstance();
     private ImageButton avatar;
     private FloatingActionButton addBtn;
     private ListView list;
+    private Button soBtn;
     public final String APP_TAG = "MyCustomApp";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1034;
     public String photoFileName = "photo.jpg";
@@ -81,11 +88,17 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         initialUI();
 
-        avatar.setOnClickListener(new Button.OnClickListener(){
-            public void onClick(View arg0) {
-                //onLaunchCamera(arg0);
-                //onPickPhoto(arg0);
+        avatar.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v) {
                 pickMethod();
+            }
+        });
+        soBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                mAuth.signOut();
+                Toast.makeText(getApplicationContext(), "Signing Out User!!", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -97,37 +110,52 @@ public class HomeActivity extends AppCompatActivity {
         list.setAdapter(adapter);
         list.setVisibility(View.VISIBLE);
 
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> av, View view, int i, long l) {
+                if(i == 0){
+                    onLaunchCamera(view);
+                }else{
+                    onPickPhoto(view);
+                }
+            }
+        });
     }
 // Trigger gallery selection for a photo
-        public void onPickPhoto(View view) {
-            // Create intent for picking a photo from the gallery
-            Intent intent = new Intent(Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-            // If you call startActivityForResult() using an intent that no app can handle, your app will crash.
-            // So as long as the result is not null, it's safe to use the intent.
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                // Bring up gallery to select a photo
-                startActivityForResult(intent, PICK_PHOTO_CODE);
-            }
+    public void onPickPhoto(View view) {
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(intent, PICK_PHOTO_CODE);
         }
-
-        @Override
-        public void onActivityResult(int requestCode, int resultCode, Intent data) {
-            if (data != null) {
-                Uri photoUri = data.getData();
-                // Do something with the photo based on Uri
-                Bitmap selectedImage = null;
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
                 try {
-                    selectedImage = Images.Media.getBitmap(this.getContentResolver(), photoUri);
+                    resizeImage();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                // Load the selected image into a preview
+                Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
                 ImageView ivPreview = (ImageView) findViewById(R.id.avatar);
-                ivPreview.setImageBitmap(selectedImage);
+                ivPreview.setImageBitmap(takenImage);
+            } else {
+                Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
+        }else if (data != null) {
+            Uri photoUri = data.getData();
+            Bitmap selectedImage = null;
+            try {
+                selectedImage = Images.Media.getBitmap(this.getContentResolver(), photoUri);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ImageView ivPreview = (ImageView) findViewById(R.id.avatar);
+            ivPreview.setImageBitmap(selectedImage);
         }
+        list.setVisibility(View.GONE);
+    }
     public void onLaunchCamera(View view) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         photoFile = getPhotoFileUri(photoFileName);
@@ -149,23 +177,6 @@ public class HomeActivity extends AppCompatActivity {
         return file;
     }
 
-   /*@Override
-   public void onActivityResult(int requestCode, int resultCode, Intent data) {
-       if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
-           if (resultCode == RESULT_OK) {
-               try {
-                   resizeImage();
-               } catch (IOException e) {
-                   e.printStackTrace();
-               }
-               Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-               ImageView ivPreview = (ImageView) findViewById(R.id.avatar);
-               ivPreview.setImageBitmap(takenImage);
-           } else {
-               Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
-           }
-       }
-   }*/
    public void resizeImage() throws IOException {
        Uri takenPhotoUri = Uri.fromFile(getPhotoFileUri(photoFileName));
        Bitmap rawTakenImage = BitmapFactory.decodeFile(takenPhotoUri.getPath());
@@ -182,6 +193,7 @@ public class HomeActivity extends AppCompatActivity {
    private void initialUI(){
        avatar = findViewById(R.id.avatar);
        addBtn = findViewById(R.id.addBtn);
-       list = findViewById(R.id.list);
+       list = findViewById(R.id.listView);
+       soBtn = findViewById(R.id.soBtn);
     }
 }
