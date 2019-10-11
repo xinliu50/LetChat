@@ -7,4 +7,5 @@
     <string name="comfirmPassword">comfirm password</string>
     <string name="email">email</string>
     <string name="signOut">Sign Out</string>
+    <string name="SignUp">sign up</string>
 </resources>

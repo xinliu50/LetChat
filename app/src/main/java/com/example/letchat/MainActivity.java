@@ -3,11 +3,14 @@ package com.example.letchat;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,12 +21,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private EditText username, password;
-    private Button regBtn, lgBtn;
+    private Button signUpBtn, lgBtn;
     private ProgressBar progressBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,59 +33,52 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mAuth = FirebaseAuth.getInstance();
         initializeUI();
-        regBtn.setOnClickListener(new View.OnClickListener() {
+        setupUI(findViewById(R.id.parent));//hide keyboard
+
+        signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                register();
+               // register();
+                Log.d("myTag", "go to register page");
+                Intent intent = new Intent(MainActivity.this,RegisterActivity.class);
+                startActivity(intent);
+
             }
         });
         lgBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("myTag", "go to log in page");
                 loginUserAccount();
             }
         });
     }
     private void initializeUI() {
-        username = findViewById(R.id.username);
-        password = findViewById(R.id.password);
-        regBtn = findViewById(R.id.regBtn);
-        lgBtn = findViewById(R.id.lgBtn);
-        progressBar = findViewById(R.id.progressBar);
+        username = (EditText) findViewById(R.id.username);
+        password = (EditText) findViewById(R.id.password);
+        signUpBtn = (Button) findViewById(R.id.signUp);
+        lgBtn = (Button) findViewById(R.id.lgBtn);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
     }
-    private void register(){
-        Intent intent = new Intent(MainActivity.this,RegisterActivity.class);
+    public void setupUI(View view) {
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(MainActivity.this);
+                    return false;
+                }
+            });
+        }
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
+        }
+    }
+    public void register(){
+        Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
         startActivity(intent);
-        /*
-        progressBar.setVisibility(View.VISIBLE);
-        String username, password;
-        username = this.username.getText().toString();
-        password = this.password.getText().toString();
-        closeKeyboard();
-        if(TextUtils.isEmpty(username)){
-            Toast.makeText(getApplicationContext(),"Please enter your email!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        if(TextUtils.isEmpty(password)){
-            Toast.makeText(getApplicationContext(),"Please enter yor password!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        mAuth.createUserWithEmailAndPassword(username,password)
-                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(getApplicationContext(),"Registration successful!",Toast.LENGTH_LONG).show();
-                            progressBar.setVisibility(View.GONE);
-                        }else{
-                            Toast.makeText(getApplicationContext(),"Registration failed! Please try again!",Toast.LENGTH_LONG).show();
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    }
-                });
-        this.username.setText("");
-        this.password.setText("");*/
-
     }
     private void loginUserAccount(){
         progressBar.setVisibility(View.VISIBLE);
@@ -106,7 +101,6 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
                             progressBar.setVisibility(View.GONE);
-                            //sp.edit().putBoolean("logged",true).apply();
                             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                             startActivity(intent);
                         }
@@ -125,5 +119,12 @@ public class MainActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(),0);
         }
+    }
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(
+                activity.getCurrentFocus().getWindowToken(), 0);
     }
 }

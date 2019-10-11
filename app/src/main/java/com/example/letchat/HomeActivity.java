@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,10 +12,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.net.Uri;
 import android.widget.ImageView;
@@ -26,6 +31,9 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -71,6 +79,10 @@ class BitmapScaler
 
 public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private String user_id =  mAuth.getCurrentUser().getUid();
+
     private ImageButton avatar;
     private FloatingActionButton addBtn;
     private ListView list;
@@ -88,11 +100,16 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         initialUI();
 
-        avatar.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-                pickMethod();
-            }
-        });
+        setupUI(findViewById(R.id.homeView));
+        try {
+            avatar.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    pickMethod();
+                }
+            });
+        }catch (Exception e){
+            Log.d("status",e.toString());
+        }
         soBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 mAuth.signOut();
@@ -101,6 +118,8 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        //displayUserInfor();
     }
     private void pickMethod(){
         ArrayList<String> items = new ArrayList<>();
@@ -173,7 +192,6 @@ public class HomeActivity extends AppCompatActivity {
             Log.d(APP_TAG, "failed to create directory");
         }
         File file = new File(mediaStorageDir.getPath() + File.separator + fileName);
-
         return file;
     }
 
@@ -191,9 +209,32 @@ public class HomeActivity extends AppCompatActivity {
        fos.close();
    }
    private void initialUI(){
-       avatar = findViewById(R.id.avatar);
-       addBtn = findViewById(R.id.addBtn);
-       list = findViewById(R.id.listView);
-       soBtn = findViewById(R.id.soBtn);
+       avatar = (ImageButton) findViewById(R.id.avatar);
+       addBtn = (FloatingActionButton)findViewById(R.id.addBtn);
+       list = (ListView) findViewById(R.id.listView);
+       soBtn = (Button) findViewById(R.id.soBtn);
+    }
+    public void setupUI(View view) {
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(HomeActivity.this);
+                    return false;
+                }
+            });
+        }
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
+        }
+    }
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(
+                activity.getCurrentFocus().getWindowToken(), 0);
     }
 }
