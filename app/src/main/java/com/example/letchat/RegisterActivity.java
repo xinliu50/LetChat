@@ -34,6 +34,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -47,7 +48,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,14 +67,12 @@ public class RegisterActivity extends AppCompatActivity {
     FirebaseFirestore db;
     private String user_id;
 
-    private Uri imageUri = null;
-    private Uri imageUrl1;
-    private Bitmap bitmap;
     private ProgressBar progressBar;
-    private ImageButton profilePic;
+    private ImageButton profilePic, gobackBtn;
     ImageView ivPreview;
     private ListView listView;
-    private static final String TAG = "DocSnippets";
+    private static final String TAG = RegisterActivity.class.getName();
+
     public final String APP_TAG = "MyCustomApp";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1034;
     public String photoFileName = "photo1.jpg";
@@ -82,13 +84,18 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-
         initializeUI();
-        setupUI(findViewById(R.id.registerView));
+
         regBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 registerNewUser();
+            }
+        });
+        gobackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
             }
         });
         profilePic.setOnClickListener(new View.OnClickListener() {
@@ -129,16 +136,13 @@ public class RegisterActivity extends AppCompatActivity {
                     Map<String,Object> user = new HashMap<>();
                     user.put("username",username);
                     user.put("email",email);
-                    Log.d("status",username);
-                    Log.d("status",email);
+                    user.put("createDate", new Timestamp(new Date()));
                     db = FirebaseFirestore.getInstance();
                     addUserToFirebase(user);
                     Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                     Log.d("status","succ");
                     progressBar.setVisibility(View.GONE);
-
-                    //Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                   // startActivity(intent);
+                    finish();
                 }
                 else {
                     Toast.makeText(getApplicationContext(), "Registration failed! Please try again later", Toast.LENGTH_LONG).show();
@@ -148,75 +152,45 @@ public class RegisterActivity extends AppCompatActivity {
         });
     }
     private void addUserToFirebase(Map<String,Object> user){
-        Log.d("status","addUser");
-        //db.collection("users").document(user_id).get();
-
-        db.collection("users")
-                .add(user)
-                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+        user_id = mAuth.getCurrentUser().getUid();
+        db.collection("users").document(user_id).set(user)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("status","DocumentSnapshot added with ID: " + documentReference.getId());
-                        user_id = mAuth.getCurrentUser().getUid();
-                        Log.d("status",user_id);
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot successfully written!");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.d("status", "Error adding document", e);
+                        Log.d(TAG, "Error writing document", e);
                     }
                 });
-       // uploadImageAndSaveUri(this.bitmap);
-        /*ivPreview.setDrawingCacheEnabled(true);
-        ivPreview.buildDrawingCache();
-        Bitmap bitmap = ((BitmapDrawable) ivPreview.getDrawable()).getBitmap();
+
+        updatePic(user_id);
+    }
+    private void updatePic(String userId){
+        StorageReference avatarRef = storageRef.child("/"+userId+"/avatar.jpg");
+        profilePic.setDrawingCacheEnabled(true);
+        profilePic.buildDrawingCache();
+        Bitmap bitmap = ((BitmapDrawable) profilePic.getDrawable()).getBitmap();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] data = baos.toByteArray();
-        StorageReference picRef = storageReference.child("picture.jpg");
 
-        UploadTask uploadTask = picRef.putBytes(data);
+        UploadTask uploadTask = avatarRef.putBytes(data);
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                Log.d("avatar","faull!!");
+                // Handle unsuccessful uploads
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Log.d("avatar","succ!!!!");
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
+                // ...
             }
-        });*/
-        //upload();
-    }
-    private void upload(){
-        try {
-            ivPreview.setDrawingCacheEnabled(true);
-            ivPreview.buildDrawingCache();
-            StorageReference picRef = storageRef.child("pics.jpg");
-            Bitmap bitmap = ((BitmapDrawable) ivPreview.getDrawable()).getBitmap();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] data = baos.toByteArray();
-
-            UploadTask uploadTask = picRef.putBytes(data);
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    Log.d("status", exception.toString());
-                }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
-                    // ...
-                    Log.d("status", "upload!");
-                }
-            });
-        }catch (Exception exception){
-            Log.d("status","eorororo");
-        }
+        });
 
     }
     private void pickMethod(){
@@ -246,6 +220,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 try {
@@ -254,14 +229,12 @@ public class RegisterActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
                 Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-                //uploadImageAndSaveUri(takenImage);
-
                 ivPreview = (ImageView) findViewById(R.id.profilePic);
                 ivPreview.setImageBitmap(takenImage);
             } else {
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
-        }else if (data != null) {
+        } else if (data != null) {
             Uri photoUri = data.getData();
             Bitmap selectedImage = null;
             try {
@@ -269,53 +242,10 @@ public class RegisterActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //uploadImageAndSaveUri(selectedImage);
-
             ivPreview = (ImageView) findViewById(R.id.profilePic);
             ivPreview.setImageBitmap(selectedImage);
         }
         listView.setVisibility(View.GONE);
-    }
-    private void uploadImageAndSaveUri(Bitmap bitmap){
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        storageRef = FirebaseStorage.getInstance().getReference()
-                .child("pics/" + FirebaseAuth.getInstance().getCurrentUser().getUid());
-        bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);
-        byte[] image = baos.toByteArray();
-        UploadTask upload = storageRef.putBytes(image);
-        upload.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                Log.d("status","faull!!");
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Log.d("status","succ!!!!");
-                Log.d("status",storageRef.getDownloadUrl().toString());
-
-            }
-        });
-        /*upload.addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
-                    storageReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> url) {
-                            if(url.isSuccessful()){
-                                AuthResult result = url.getResult();
-                                i
-                            }else{
-
-                            }
-                        }
-                    })
-                }else{
-
-                }
-            }
-        });*/
     }
     public void onLaunchCamera(View view) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -356,6 +286,7 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.progressBar2);
         profilePic = (ImageButton) findViewById(R.id.profilePic);
         listView = (ListView) findViewById(R.id.listView);
+        gobackBtn = (ImageButton) findViewById(R.id.gobackBtn1);
     }
     private void closeKeyboard(){
         View view = this.getCurrentFocus();
@@ -364,27 +295,12 @@ public class RegisterActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(view.getWindowToken(),0);
         }
     }
-    public void setupUI(View view) {
-        if (!(view instanceof EditText)) {
-            view.setOnTouchListener(new View.OnTouchListener() {
-                public boolean onTouch(View v, MotionEvent event) {
-                    hideSoftKeyboard(RegisterActivity.this);
-                    return false;
-                }
-            });
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (getCurrentFocus() != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setupUI(innerView);
-            }
-        }
-    }
-    public static void hideSoftKeyboard(Activity activity) {
-        InputMethodManager inputMethodManager =
-                (InputMethodManager) activity.getSystemService(
-                        Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(
-                activity.getCurrentFocus().getWindowToken(), 0);
+        return super.dispatchTouchEvent(ev);
     }
 }

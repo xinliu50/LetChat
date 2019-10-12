@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -28,12 +30,16 @@ import android.widget.TableRow;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -79,14 +85,13 @@ class BitmapScaler
 
 public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
-    private StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+    private StorageReference storageRef = FirebaseStorage.getInstance().getReference();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private String user_id =  mAuth.getCurrentUser().getUid();
 
-    private ImageButton avatar;
-    private FloatingActionButton addBtn;
+    private ImageButton avatar, addBtn, gobackBtn, friendBtn, profileBtn, chatBtn;
     private ListView list;
-    private Button soBtn;
+    private FloatingActionButton soBtn;
     public final String APP_TAG = "MyCustomApp";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1034;
     public String photoFileName = "photo.jpg";
@@ -99,16 +104,15 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initialUI();
-
-        setupUI(findViewById(R.id.homeView));
+        loadUserInfo();
         try {
             avatar.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     pickMethod();
                 }
             });
-        }catch (Exception e){
-            Log.d("status",e.toString());
+        }catch (Throwable e){
+            Log.d("status",e.getMessage());
         }
         soBtn.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -118,8 +122,54 @@ public class HomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        gobackBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+    private void loadUserInfo(){
+        final long ONE_MEGABYTE = 1024 * 1024;
+        StorageReference islandRef = storageRef.child("/"+user_id+"/avatar.jpg");
 
-        //displayUserInfor();
+        islandRef.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+            @Override
+            public void onSuccess(byte[] bytes) {
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                avatar.setImageBitmap(Bitmap.createScaledBitmap(bmp, avatar.getWidth(),
+                        avatar.getHeight(), false));
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+            }
+        });
+
+    }
+    private void updatePic(){
+        StorageReference avatarRef = storageRef.child("/"+user_id+"/avatar.jpg");
+        avatar.setDrawingCacheEnabled(true);
+        avatar.buildDrawingCache();
+        Bitmap bitmap = ((BitmapDrawable) avatar.getDrawable()).getBitmap();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] data = baos.toByteArray();
+
+        UploadTask uploadTask = avatarRef.putBytes(data);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle unsuccessful uploads
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
+                // ...
+            }
+        });
+
     }
     private void pickMethod(){
         ArrayList<String> items = new ArrayList<>();
@@ -149,6 +199,7 @@ public class HomeActivity extends AppCompatActivity {
     }
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 try {
@@ -159,10 +210,11 @@ public class HomeActivity extends AppCompatActivity {
                 Bitmap takenImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
                 ImageView ivPreview = (ImageView) findViewById(R.id.avatar);
                 ivPreview.setImageBitmap(takenImage);
+                updatePic();
             } else {
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
-        }else if (data != null) {
+        } else if (data != null) {
             Uri photoUri = data.getData();
             Bitmap selectedImage = null;
             try {
@@ -172,6 +224,7 @@ public class HomeActivity extends AppCompatActivity {
             }
             ImageView ivPreview = (ImageView) findViewById(R.id.avatar);
             ivPreview.setImageBitmap(selectedImage);
+            updatePic();
         }
         list.setVisibility(View.GONE);
     }
@@ -210,31 +263,20 @@ public class HomeActivity extends AppCompatActivity {
    }
    private void initialUI(){
        avatar = (ImageButton) findViewById(R.id.avatar);
-       addBtn = (FloatingActionButton)findViewById(R.id.addBtn);
+       addBtn = (ImageButton)findViewById(R.id.addBtn);
+       friendBtn = (ImageButton) findViewById(R.id.friendBtn);
+       chatBtn = (ImageButton) findViewById(R.id.chatBtn);
+       profileBtn = (ImageButton) findViewById(R.id.profileBtn) ;
+       gobackBtn = (ImageButton)findViewById(R.id.gobackBtn);
        list = (ListView) findViewById(R.id.listView);
-       soBtn = (Button) findViewById(R.id.soBtn);
+       soBtn = (FloatingActionButton) findViewById(R.id.soBtn);
     }
-    public void setupUI(View view) {
-        if (!(view instanceof EditText)) {
-            view.setOnTouchListener(new View.OnTouchListener() {
-                public boolean onTouch(View v, MotionEvent event) {
-                    hideSoftKeyboard(HomeActivity.this);
-                    return false;
-                }
-            });
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (getCurrentFocus() != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setupUI(innerView);
-            }
-        }
-    }
-    public static void hideSoftKeyboard(Activity activity) {
-        InputMethodManager inputMethodManager =
-                (InputMethodManager) activity.getSystemService(
-                        Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(
-                activity.getCurrentFocus().getWindowToken(), 0);
+        return super.dispatchTouchEvent(ev);
     }
 }
