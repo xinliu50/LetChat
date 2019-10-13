@@ -9,17 +9,22 @@
         android:id="@+id/navigation_home"
         android:name="com.example.letchat.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/home_fragment" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.example.letchat.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_addFriend"
+        android:name="com.example.letchat.ui.add.AddFragment"
+        android:label="Add"
+        tools:layout="@layout/add_fragment" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.example.letchat.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_chat"
+        android:name="com.example.letchat.ui.chat.ChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/chat_fragment" />
+    <fragment
+        android:id="@+id/navigation_friend"
+        android:name="com.example.letchat.ui.friend.FriendFragment"
+        android:label="Friends"
+        tools:layout="@layout/friend_fragment" />
 </navigation>

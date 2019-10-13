@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         String username, password;
         username = this.username.getText().toString();
         password = this.password.getText().toString();
-        closeKeyboard();
+       // closeKeyboard();
         if(TextUtils.isEmpty(username)){
             Toast.makeText(getApplicationContext(),"Please enter your email!", Toast.LENGTH_LONG).show();
             return;
@@ -92,13 +92,13 @@ public class MainActivity extends AppCompatActivity {
         this.username.setText("");
         this.password.setText("");
     }
-    private void closeKeyboard(){
+    /*private void closeKeyboard(){
         View view = this.getCurrentFocus();
         if(view != null){
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(),0);
         }
-    }
+    }*/
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (getCurrentFocus() != null) {

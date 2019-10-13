@@ -3,66 +3,37 @@ package com.example.letchat;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.net.Uri;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TableRow;
 import android.widget.Toast;
 
-import com.example.letchat.ui.AddFragment;
-import com.example.letchat.ui.ChatFragment;
-import com.example.letchat.ui.FriendFragment;
-import com.example.letchat.ui.ProfileFragment;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
 
-import static android.provider.MediaStore.*;
-
-class BitmapScaler
+/*class BitmapScaler
 {
     // scale and keep aspect ratio
     public static Bitmap scaleToFitWidth(Bitmap b, int width)
@@ -93,7 +64,7 @@ class BitmapScaler
         return Bitmap.createScaledBitmap(b, (int) (b.getWidth() * factorW),
                 (int) (b.getHeight() * factorH), true);
     }
-}
+}*/
 
 public class HomeActivity extends AppCompatActivity {
     private FirebaseAuth mAuth = FirebaseAuth.getInstance();
@@ -113,36 +84,12 @@ public class HomeActivity extends AppCompatActivity {
     // PICK_PHOTO_CODE is a constant integer
     public final static int PICK_PHOTO_CODE = 1046;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(MenuItem item) {
-            Fragment selectedFragment = null;
-            switch (item.getItemId()) {
-                case R.id.navigation_chat:
-                    selectedFragment = ChatFragment.newInstance();
-                    break;
-                case R.id.navigation_friend:
-                    selectedFragment = FriendFragment.newInstance();
-                    break;
-                case R.id.navigation_addFriend:
-                    selectedFragment = AddFragment.newInstance();
-                    break;
-                case R.id.navigation_home:
-                    selectedFragment = ProfileFragment.newInstance();
-                    break;
-            }
-            openFragment(selectedFragment);
-            return true;
-        }
-    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         initialUI();
-       // loadUserInfo();
-        /*try {
+       /* try {
             avatar.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     pickMethod();
@@ -165,9 +112,16 @@ public class HomeActivity extends AppCompatActivity {
                 finish();
             }
         });*/
-
+        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home, R.id.navigation_addFriend, R.id.navigation_friend, R.id.navigation_chat)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(bottomNavigationView, navController);
+        //loadUserInfo();
     }
-    /*private void loadUserInfo(){
+    private void loadUserInfo(){
         final long ONE_MEGABYTE = 1024 * 1024;
         StorageReference islandRef = storageRef.child("/"+user_id+"/avatar.jpg");
 
@@ -185,7 +139,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
     }
-    private void updatePic(){
+    /*private void updatePic(){
         StorageReference avatarRef = storageRef.child("/"+user_id+"/avatar.jpg");
         avatar.setDrawingCacheEnabled(true);
         avatar.buildDrawingCache();
@@ -298,55 +252,22 @@ public class HomeActivity extends AppCompatActivity {
        FileOutputStream fos = new FileOutputStream(resizedFile);
        fos.write(bytes.toByteArray());
        fos.close();
-   }*/
+   }
     private void openFragment(Fragment fragment) {
         FragmentTransaction transaction =  getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
-    }
+    }*/
    private void initialUI(){
        avatar = (ImageButton) findViewById(R.id.avatar);
        gobackBtn = (ImageButton)findViewById(R.id.gobackBtn);
        list = (ListView) findViewById(R.id.listView);
        soBtn = (FloatingActionButton) findViewById(R.id.soBtn);
        toolbar = getSupportActionBar();
-       bottomNavigationView = findViewById(R.id.bottomNavigationView);
-
-
-       bottomNavigationView.setOnNavigationItemSelectedListener(
-               new BottomNavigationView.OnNavigationItemSelectedListener() {
-                   @Override
-                   public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                       switch (item.getItemId()) {
-                           case R.id.navigation_chat:
-                               toolbar.setTitle("Chat");
-                               Fragment chatFragment = ChatFragment.newInstance();
-                               openFragment(chatFragment);
-                               return true;
-                           case R.id.navigation_friend:
-                               toolbar.setTitle("Friends");
-                               Fragment friendFragment = FriendFragment.newInstance();
-                               openFragment(friendFragment);
-                               return true;
-                           case R.id.navigation_addFriend:
-                               toolbar.setTitle("Add Friends");
-                               Fragment homeFragment = AddFragment.newInstance();
-                               openFragment(homeFragment);
-                               return true;
-                           case R.id.navigation_home:
-                               toolbar.setTitle("Profile");
-                               Fragment profileFragment = ProfileFragment.newInstance();
-                               openFragment(profileFragment);
-                               return true;
-
-                       }
-                       return false;
-                   }
-               });
     }
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
+      @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
         if (getCurrentFocus() != null) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);

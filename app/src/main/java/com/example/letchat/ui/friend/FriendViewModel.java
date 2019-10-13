@@ -1,4 +1,4 @@
-package com.example.letchat.ui;
+package com.example.letchat.ui.friend;
 
 import androidx.lifecycle.ViewModel;
 

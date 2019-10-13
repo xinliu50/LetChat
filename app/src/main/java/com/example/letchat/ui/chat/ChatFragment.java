@@ -1,4 +1,4 @@
-package com.example.letchat.ui;
+package com.example.letchat.ui.chat;
 
 import androidx.lifecycle.ViewModelProviders;
 
@@ -14,24 +14,24 @@ import android.view.ViewGroup;
 
 import com.example.letchat.R;
 
-public class FriendFragment extends Fragment {
+public class ChatFragment extends Fragment {
 
-    private FriendViewModel mViewModel;
+    private ChatViewModel mViewModel;
 
-    public static FriendFragment newInstance() {
-        return new FriendFragment();
+    public static ChatFragment newInstance() {
+        return new ChatFragment();
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.friend_fragment, container, false);
+        return inflater.inflate(R.layout.chat_fragment, container, false);
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = ViewModelProviders.of(this).get(FriendViewModel.class);
+        mViewModel = ViewModelProviders.of(this).get(ChatViewModel.class);
         // TODO: Use the ViewModel
     }
 

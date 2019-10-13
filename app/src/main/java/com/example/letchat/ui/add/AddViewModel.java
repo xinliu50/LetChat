@@ -1,4 +1,4 @@
-package com.example.letchat.ui;
+package com.example.letchat.ui.add;
 
 import androidx.lifecycle.ViewModel;
 
