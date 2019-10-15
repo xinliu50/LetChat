@@ -18,7 +18,9 @@ import androidx.fragment.app.Fragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -81,6 +83,28 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         root = inflater.inflate(R.layout.home_fragment, container, false);
         initialUI();
         loadUserInfo();
+        final GestureDetector gesture = new GestureDetector(getActivity(),
+                new GestureDetector.SimpleOnGestureListener() {
+
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onSingleTapConfirmed(MotionEvent event) {
+                        home_photoMethodLayout.setVisibility(View.GONE);
+                        Log.d("TAP!!", "onSingleTapConfirmed: " + event.toString());
+                        return true;
+                    }
+                });
+
+        root.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gesture.onTouchEvent(event);
+            }
+        });
         return root;
     }
 
