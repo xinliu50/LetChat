@@ -5,107 +5,158 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".RegisterActivity">
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background">
 
-    <EditText
-        android:id="@+id/email"
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="104dp"
-        android:layout_marginLeft="104dp"
-        android:layout_marginTop="15dp"
-        android:ems="10"
-        android:hint="@string/email"
-        android:inputType="textEmailAddress"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username" />
+        android:layout_marginTop="200dp"
+        android:layout_marginLeft="90dp"
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/password1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="104dp"
-        android:layout_marginLeft="104dp"
-        android:layout_marginTop="15dp"
-        android:ems="10"
-        android:hint="@string/password"
-        android:inputType="textPassword"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/email" />
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="260dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/line"
+            android:ems="10"
+            android:hint="@string/username"
+            android:fontFamily="serif"
+            android:textAlignment="center"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            />
 
-    <EditText
-        android:id="@+id/password2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="104dp"
-        android:layout_marginTop="15dp"
-        android:ems="10"
-        android:hint="@string/comfirmPassword"
-        android:inputType="textPassword"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password1" />
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="260dp"
+            android:layout_height="30dp"
+            android:background="@drawable/line"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/username"
+            android:fontFamily="serif"
+            android:textAlignment="center"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            />
 
-    <EditText
-        android:id="@+id/username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="104dp"
-        android:layout_marginTop="168dp"
-        android:ems="10"
-        android:hint="@string/username"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <EditText
+            android:id="@+id/password1"
+            android:layout_width="260dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/line"
+            android:ems="10"
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/email"
+            android:fontFamily="serif"
+            android:textAlignment="center"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            />
+
+        <EditText
+            android:id="@+id/password2"
+            android:layout_width="260dp"
+            android:layout_height="30dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/line"
+            android:ems="10"
+            android:hint="@string/comfirmPassword"
+            android:inputType="textPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/password1"
+            android:fontFamily="serif"
+            android:textAlignment="center"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressBar2"
-        style="?android:attr/progressBarStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="184dp"
-        android:layout_marginLeft="184dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginLeft="200dp"
+        android:layout_marginTop="155dp"
+        android:indeterminateDrawable="@drawable/progress"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/profilePic"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="96sp"
+        android:layout_height="96sp"
         android:layout_marginStart="176dp"
         android:layout_marginTop="40dp"
+        android:background="@drawable/avatar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/ic_launcher_round" />
-
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="391dp"
-        android:layout_height="116dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:visibility="visible" />
-
+        />
     <Button
         android:id="@+id/regBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="176dp"
-        android:layout_marginTop="32dp"
+        android:background="@drawable/button"
         android:text="@string/Register"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password2" />
+        android:layout_marginTop="430dp"
+        android:layout_marginLeft="170dp"
+        android:fontFamily="serif"
+        android:textColor="#ffffff"
+        android:textSize="15sp"
+        android:textStyle="bold"/>
 
-    <ImageButton
+    <Button
         android:id="@+id/gobackBtn1"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@android:color/transparent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="?attr/actionModeCloseDrawable" />
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/back"/>
 
+    <LinearLayout
+        android:id="@+id/photoMethodLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/tkPicBtn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Take a picture"
+            android:background="@drawable/line"/>
+
+        <Button
+            android:id="@+id/chPicBtn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Choose a photo"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/line"/>
+    </LinearLayout>
+
+</RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

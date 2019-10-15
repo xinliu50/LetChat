@@ -23,8 +23,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -48,17 +50,18 @@ import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 import static android.provider.MediaStore.EXTRA_OUTPUT;
-import static com.example.letchat.HomeActivity.PICK_PHOTO_CODE;
+//import static com.example.letchat.HomeActivity.PICK_PHOTO_CODE;
 
 public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private FirebaseAuth mAuth;
     private HomeViewModel mViewModel;
+    private LinearLayout home_photoMethodLayout;
     private ImageButton avatar, soBtn;
+    private Button home_tkPicBtn, home_chPicBtn;
     private View root;
     private StorageReference storageRef;
     private String user_id;
-    private ListView list;
     public final String APP_TAG = "MyCustomApp";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1034;
     public String photoFileName = "photo.jpg";
@@ -89,8 +92,10 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
     private void initialUI(){
         avatar = (ImageButton) root.findViewById(R.id.avatar);
         soBtn = (ImageButton) root.findViewById(R.id.soBtn);
-        list = (ListView) root.findViewById(R.id.listView);
         activity = HomeFragment.this.getActivity();
+        home_tkPicBtn = (Button) root.findViewById(R.id.home_tkPicBtn);
+        home_chPicBtn = (Button) root.findViewById(R.id.home_chPicBtn);
+        home_photoMethodLayout = (LinearLayout) root.findViewById(R.id.home_photoMethodLayout);
 
         mAuth = FirebaseAuth.getInstance();
         storageRef = FirebaseStorage.getInstance().getReference();
@@ -98,6 +103,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
         soBtn.setOnClickListener(this);
         avatar.setOnClickListener(this);
+        home_tkPicBtn.setOnClickListener(this);
+        home_chPicBtn.setOnClickListener(this);
     }
 
     @Override
@@ -108,8 +115,15 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 Toast.makeText(getActivity(), "Signing Out User!!", Toast.LENGTH_LONG).show();
                 activity.finish();
                 break;
-             case R.id.avatar:
-                pickMethod();
+            case R.id.avatar:
+                home_photoMethodLayout.setVisibility(View.VISIBLE);
+                break;
+            case R.id.home_chPicBtn:
+                onPickPhoto(v);
+                break;
+            case R.id.home_tkPicBtn:
+                onLaunchCamera(v);
+                break;
         }
     }
     private void loadUserInfo(){
@@ -126,6 +140,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
+                Log.d("status", "erroe!loadUserInfo()");
             }
         });
 
@@ -143,35 +158,17 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
+                Log.d("status", "fail!updatePic()");
             }
         }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
-                // ...
+                Log.d("status", "updatePic()");
             }
         });
 
     }
-    private void pickMethod(){
-        ArrayList<String> items = new ArrayList<>();
-        items.add("Take a picture");
-        items.add(("Choose from your device"));
-        ArrayAdapter adapter = new ArrayAdapter(activity,android.R.layout.simple_list_item_1,items);
-        list.setAdapter(adapter);
-        list.setVisibility(View.VISIBLE);
 
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> av, View view, int i, long l) {
-                if(i == 0){
-                    onLaunchCamera(view);
-                }else{
-                    onPickPhoto(view);
-                }
-            }
-        });
-    }
     // Trigger gallery selection for a photo
     public void onPickPhoto(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK,
@@ -209,7 +206,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             ivPreview.setImageBitmap(selectedImage);
             updatePic();
         }
-        list.setVisibility(View.GONE);
+        home_photoMethodLayout.setVisibility(View.GONE);
     }
     public void onLaunchCamera(View view) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -225,7 +222,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         File mediaStorageDir = new File(activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), APP_TAG);
 
         if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()){
-            Log.d(APP_TAG, "failed to create directory");
+            Log.d("status", "failed to create directory");
         }
         File file = new File(mediaStorageDir.getPath() + File.separator + fileName);
         return file;

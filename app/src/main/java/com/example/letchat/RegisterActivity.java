@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -61,14 +62,15 @@ public class RegisterActivity extends AppCompatActivity {
 
 
     private EditText password1, password2, username, email;
-    private Button regBtn;
-    private  FirebaseAuth mAuth;
+    private Button regBtn,gobackBtn,tkPicBtn,chPicBtn;
+    private FirebaseAuth mAuth;
     private StorageReference storageRef;
     FirebaseFirestore db;
     private String user_id;
+    private LinearLayout photoMethodLayout;
 
     private ProgressBar progressBar;
-    private ImageButton profilePic, gobackBtn;
+    private ImageButton profilePic;
     ImageView ivPreview;
     private ListView listView;
     private static final String TAG = RegisterActivity.class.getName();
@@ -101,7 +103,22 @@ public class RegisterActivity extends AppCompatActivity {
         profilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pickMethod();
+                //pickMethod();
+                photoMethodLayout.setVisibility(v.VISIBLE);
+            }
+        });
+        tkPicBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                photoMethodLayout.setVisibility(v.GONE);
+                onLaunchCamera(v);
+            }
+        });
+        chPicBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                photoMethodLayout.setVisibility(v.GONE);
+                onPickPhoto(v);
             }
         });
     }
@@ -193,14 +210,18 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
     }
-    private void pickMethod(){
-        ArrayList<String> items = new ArrayList<>();
+    //private void pickMethod(){
+       /* ArrayList<String> items = new ArrayList<>();
         items.add("Take a picture");
         items.add(("Choose from your device"));
         ArrayAdapter adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,items);
         listView.setAdapter(adapter);
         listView.setVisibility(View.VISIBLE);
-
+       if(listView.getVisibility() == View.VISIBLE){
+           Log.d("status", "visible!!");
+       }else {
+           Log.d("status", "gone!!");
+       }
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> av, View view, int i, long l) {
                 if(i == 0){
@@ -209,8 +230,8 @@ public class RegisterActivity extends AppCompatActivity {
                     onPickPhoto(view);
                 }
             }
-        });
-    }
+        });*/
+    //}
     public void onPickPhoto(View view) {
         Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -245,7 +266,7 @@ public class RegisterActivity extends AppCompatActivity {
             ivPreview = (ImageView) findViewById(R.id.profilePic);
             ivPreview.setImageBitmap(selectedImage);
         }
-        listView.setVisibility(View.GONE);
+        photoMethodLayout.setVisibility(View.GONE);
     }
     public void onLaunchCamera(View view) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -285,8 +306,11 @@ public class RegisterActivity extends AppCompatActivity {
         username = (EditText)findViewById(R.id.username);
         progressBar = (ProgressBar) findViewById(R.id.progressBar2);
         profilePic = (ImageButton) findViewById(R.id.profilePic);
-        listView = (ListView) findViewById(R.id.listView);
-        gobackBtn = (ImageButton) findViewById(R.id.gobackBtn1);
+        //listView = (ListView) findViewById(R.id.listView);
+        gobackBtn = (Button) findViewById(R.id.gobackBtn1);
+        tkPicBtn = (Button) findViewById(R.id.tkPicBtn);
+        chPicBtn = (Button) findViewById(R.id.chPicBtn);
+        photoMethodLayout = (LinearLayout) findViewById(R.id.photoMethodLayout);
     }
     private void closeKeyboard(){
         View view = this.getCurrentFocus();
